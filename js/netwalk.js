@@ -1,12 +1,7 @@
-var Netwalk, log, newgame;
-
-log = function(msg) {
-  return $('#console').append('<p>' + msg + '</p>');
-};
-
 Netwalk = (function() {
 
   function Netwalk(options) {
+    console.log('new game');
     var defaults, drawTicks, randomizeTicks, self;
     if (options == null) {
       options = {};
@@ -38,20 +33,19 @@ Netwalk = (function() {
     };
     this.container = $(this.options.containerSelector);
     this.container.html('');
-    this.container.css('width', '450px');
-    this.container.css('height', '300px');
-    if (!(this.options.size != null) && !(this.options.columns != null)) {
-      log('at least size or # of columns required');
+    this.container.css('width', '' + this.options.columns * this.options.size + 'px');
+    this.container.css('height', '' + this.options.rows * this.options.size + 'px');
+    if (!(this.options.size != null)) {
+      console.log('size is a required parameter');
       return;
     }
-    if (!(this.options.size != null)) {
-      this.options.size = this.container.width() / this.options.columns;
-    }
     if (!(this.options.columns != null)) {
-      this.options.columns = Math.round(this.container.width() / this.options.size);
+      console.log('columns is a required parameter');
+      return;
     }
     if (!(this.options.rows != null)) {
-      this.options.rows = Math.round(this.container.height() / this.options.size);
+      console.log('rows is a required parameter');
+      return;
     }
     this.container.css('font-size', Math.round(this.options.size / 10 - 1) * 10);
     this.container.css('max-width', "" + this.options.columns + "em");
@@ -60,7 +54,11 @@ Netwalk = (function() {
     self.buildMatrix();
     this.serverVector = Vector.create([1 + _.random(this.options.columns - 2), 1 + _.random(this.options.rows - 2)]);
     this.putOnBoard(this.serverVector, 16);
-    drawTicks = setInterval((function() {
+    while(self.tick()){}
+    self.drawingIsDone = true;
+    while(self.randomize()){}
+
+    /*drawTicks = setInterval((function() {
       if (!self.tick()) {
         clearInterval(drawTicks);
         return this.drawingIsDone = true;
@@ -74,7 +72,7 @@ Netwalk = (function() {
         clearInterval(randomizeTicks);
         return self.highlightConnectedNeighboursOf(self.serverVector);
       }
-    }), 5);
+    }), 5);*/
     this.container.on('selectstart', false).children().each(function(i, tail) {
       return $(tail).on('click', function(event) {
         self.rotate(i);
@@ -105,7 +103,7 @@ Netwalk = (function() {
     figure = this.board[cell];
     type = this.typeOfFigure(figure);
     if (_.indexOf(this.connectedCells, cell) !== -1) {
-      log("cell " + cell + " is already connected");
+      console.log("cell " + cell + " is already connected");
       return;
     }
     if (type === 'computer') {
@@ -234,7 +232,7 @@ Netwalk = (function() {
       newFigureIndex = ++figureIndex < figures.length ? figureIndex : 0;
       newFigure = figures[newFigureIndex];
     } else {
-      log("OOPS unknown type for figure " + figure);
+      console.log("OOPS unknown type for figure " + figure);
     }
     return newFigure;
   };
@@ -367,7 +365,7 @@ Netwalk = (function() {
       return false;
     }
     madeConnection = false;
-    this.draw();
+    //this.draw();
     _results = [];
     while (!madeConnection && this.toDraw.length > 0) {
       i = _.random(this.toDraw.length - 1);
@@ -411,15 +409,3 @@ Netwalk = (function() {
   return Netwalk;
 
 })();
-
-newgame = function() {
-  return new Netwalk;
-};
-
-$(document).ready(function() {
-  newgame();
-  return $('#new').click(function() {
-    return newgame();
-  });
-});
-
